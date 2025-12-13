@@ -1,0 +1,255 @@
+:root {
+  --primary: #3B82F6;
+  --background: #F9FAFB;
+  --card: #FFFFFF;
+  --text: #111827;
+  --muted: #6B7280;
+  --border: #E5E7EB;
+  --shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  --radius: 16px;
+  --spacing: 16px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  line-height: 1.5;
+  padding-bottom: 80px; /* Space for bottom nav */
+}
+
+.container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: var(--spacing);
+}
+
+/* Header */
+.header {
+  text-align: center;
+  padding: var(--spacing) 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Status Indicator */
+.status {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: var(--spacing);
+}
+
+.status.online {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.status.offline {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+/* Progress Card */
+.progress-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--spacing);
+  text-align: center;
+  margin-bottom: var(--spacing);
+}
+
+.progress-circle {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: conic-gradient(var(--primary) 0% 60%, #E5E7EB 60% 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--spacing);
+  position: relative;
+}
+
+.progress-circle::before {
+  content: '';
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  background: var(--card);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.progress-text {
+  position: relative;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.progress-subtext {
+  font-size: 16px;
+  color: var(--muted);
+  margin-bottom: var(--spacing);
+}
+
+.goal-text {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+/* Buttons */
+.btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 100%;
+  margin-bottom: var(--spacing);
+}
+
+.btn:hover {
+  background: #2563EB;
+}
+
+.btn.secondary {
+  background: #E0E7FF;
+  color: var(--primary);
+}
+
+.btn.secondary:hover {
+  background: #C7D2FE;
+}
+
+/* Add Water Grid */
+.amount-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing);
+  margin-bottom: var(--spacing);
+}
+
+.amount-btn {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.amount-btn:hover {
+  border-color: var(--primary);
+}
+
+.amount-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* History Cards */
+.history-list {
+  list-style: none;
+}
+
+.history-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--spacing);
+  margin-bottom: var(--spacing);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.history-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.history-date {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.history-total {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.details {
+  margin-top: var(--spacing);
+  padding: var(--spacing);
+  background: var(--background);
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  z-index: 1000;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px;
+  border-radius: 8px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.nav-link:hover {
+  color: var(--primary);
+}
+
+.nav-link.active {
+  color: var(--primary);
+  background: #EFF6FF;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .container {
+    max-width: 600px;
+  }
+}
