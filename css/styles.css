@@ -673,3 +673,6 @@ body {
 #testNotificationBtn {
   margin-top: 40px;
 }
+.settings-group .btn {
+  margin-top: 16px;
+}
