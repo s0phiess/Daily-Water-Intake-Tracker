@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const streak = document.getElementById('streak');
   const timelineList = document.getElementById('timelineList');
   const quickBtns = document.querySelectorAll('.quick-btn');
+  const locationLabel = document.getElementById('locationLabel');
 
   let currentGoal = 2000;
 
@@ -27,6 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const today = new Date().toISOString().split('T')[0];
     getSettings().then(settings => {
       currentGoal = settings.dailyGoal;
+      // Update location label
+      if (settings.location && settings.location.city) {
+        locationLabel.textContent = `Location: ${settings.location.city}`;
+      } else {
+        locationLabel.textContent = '';
+      }
       getDailyHydration(today).then(total => {
         const percentage = Math.min((total / currentGoal) * 100, 100);
         const remaining = currentGoal - total;

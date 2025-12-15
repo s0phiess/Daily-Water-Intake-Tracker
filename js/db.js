@@ -154,7 +154,8 @@ function getSettings() {
     return new Promise((resolve, reject) => {
       const request = store.get('settings');
       request.onsuccess = () => {
-        resolve(request.result || { dailyGoal: 2000, notificationsEnabled: false });
+        const settings = request.result || { dailyGoal: 2000, notificationsEnabled: false, location: null };
+        resolve(settings);
       };
       request.onerror = () => reject(request.error);
     });
