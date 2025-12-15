@@ -670,3 +670,6 @@ body {
   gap: 6px;
   text-align: center;
 }
+#testNotificationBtn {
+  margin-top: 40px;
+}
