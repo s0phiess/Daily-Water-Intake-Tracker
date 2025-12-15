@@ -1,15 +1,17 @@
-const CACHE_NAME = 'water-tracker-v1';
+const CACHE_NAME = 'hydration-tracker-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/add-water.html',
-  '/history.html',
+  '/add-drink.html',
+  '/statistics.html',
+  '/settings.html',
   '/offline.html',
   '/css/styles.css',
   '/js/app.js',
   '/js/db.js',
   '/js/navbar.js',
   '/js/sw-register.js',
+  '/js/settings.js',
   '/manifest.json'
 ];
 

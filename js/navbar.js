@@ -3,8 +3,9 @@ function createNavbar() {
   navbar.className = 'bottom-nav';
   navbar.innerHTML = `
     <a href="index.html" class="nav-link">Home</a>
-    <a href="add-water.html" class="nav-link">Add Water</a>
-    <a href="history.html" class="nav-link">History</a>
+    <a href="add-drink.html" class="nav-link">Add Drink</a>
+    <a href="statistics.html" class="nav-link">Statistics</a>
+    <a href="settings.html" class="nav-link">⚙️</a>
   `;
   document.body.appendChild(navbar);
 

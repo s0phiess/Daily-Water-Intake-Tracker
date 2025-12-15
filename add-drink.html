@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Drink - Daily Water Intake Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">Add Drink</div>
+    <div class="drink-grid">
+      <button class="drink-btn" data-type="water">
+        <div class="drink-icon">💧</div>
+        Water
+      </button>
+      <button class="drink-btn" data-type="tea">
+        <div class="drink-icon">🍵</div>
+        Tea
+      </button>
+      <button class="drink-btn" data-type="juice">
+        <div class="drink-icon">🧃</div>
+        Juice
+      </button>
+      <button class="drink-btn" data-type="milk">
+        <div class="drink-icon">🥛</div>
+        Milk
+      </button>
+      <button class="drink-btn" data-type="coffee">
+        <div class="drink-icon">☕</div>
+        Coffee
+      </button>
+      <button class="drink-btn" data-type="soda">
+        <div class="drink-icon">🥤</div>
+        Soda
+      </button>
+    </div>
+    <div class="amount-grid">
+      <button class="amount-btn" data-amount="200">200 ml</button>
+      <button class="amount-btn" data-amount="300">300 ml</button>
+      <button class="amount-btn" data-amount="500">500 ml</button>
+    </div>
+    <div class="custom-amount">
+      <input type="number" class="custom-input" id="customAmount" placeholder="Custom amount (ml)" min="100" max="1000">
+    </div>
+    <div class="hydration-preview">
+      <div class="preview-text" id="previewText">Select drink and amount</div>
+    </div>
+    <button class="btn" id="saveBtn" disabled>Save</button>
+  </div>
+
+  <script src="js/sw-register.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/navbar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const drinkBtns = document.querySelectorAll('.drink-btn');
+      const amountBtns = document.querySelectorAll('.amount-btn');
+      const customAmount = document.getElementById('customAmount');
+      const previewText = document.getElementById('previewText');
+      const saveBtn = document.getElementById('saveBtn');
+      let selectedDrink = null;
+      let selectedAmount = null;
+
+      const coeffs = { water: 1.0, tea: 0.9, juice: 0.8, milk: 0.7, coffee: 0.6, soda: 0.5, other: 0.7 };
+
+      drinkBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          drinkBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedDrink = btn.dataset.type;
+          updatePreview();
+        });
+      });
+
+      // Default to water on load
+      document.querySelector('.drink-btn[data-type="water"]').click();
+
+      amountBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          amountBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedAmount = parseInt(btn.dataset.amount);
+          customAmount.value = '';
+          updatePreview();
+        });
+      });
+
+      customAmount.addEventListener('input', () => {
+        amountBtns.forEach(b => b.classList.remove('active'));
+        selectedAmount = parseInt(customAmount.value) || null;
+        updatePreview();
+      });
+
+      function updatePreview() {
+        if (selectedDrink && selectedAmount) {
+          const hydration = Math.round(selectedAmount * coeffs[selectedDrink]);
+          previewText.textContent = `Hydration gained: +${hydration} ml`;
+          saveBtn.disabled = false;
+        } else {
+          previewText.textContent = 'Select drink and amount';
+          saveBtn.disabled = true;
+        }
+      }
+
+      saveBtn.addEventListener('click', () => {
+        if (selectedDrink && selectedAmount) {
+          const drinkType = selectedDrink || "water";
+          addDrink(drinkType, selectedAmount).then(() => {
+            window.location.href = 'index.html';
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

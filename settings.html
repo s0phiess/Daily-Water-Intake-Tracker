@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Daily Water Intake Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">Settings</div>
+
+    <!-- Daily Goal -->
+    <div class="settings-group">
+      <div class="settings-title">Daily Goal</div>
+
+      <div class="goal-options">
+        <button class="goal-btn" data-goal="1500">1500 ml</button>
+        <button class="goal-btn" data-goal="2000">2000 ml</button>
+        <button class="goal-btn" data-goal="2500">2500 ml</button>
+      </div>
+
+      <!-- Custom goal -->
+      <div class="custom-goal">
+        <input
+          type="number"
+          id="customGoal"
+          placeholder="Custom goal (ml)"
+          min="500"
+          max="5000"
+        >
+        <button class="btn" id="saveCustomGoal">Save Custom</button>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="settings-group">
+      <div class="toggle">
+        <div class="toggle-label">Enable Notifications</div>
+        <div class="toggle-switch" id="notificationsToggle"></div>
+      </div>
+      <button class="btn" id="testNotification">Test Notification</button>
+    </div>
+  </div>
+
+  <script src="js/sw-register.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/settings.js"></script>
+</body>
+</html>

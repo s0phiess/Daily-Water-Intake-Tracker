@@ -3,22 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Water Intake Tracker</title>
+  <title>Daily Water Intake Tracker</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <div class="container">
-    <div class="header">Water Intake Tracker</div>
+    <div class="header">Daily Water Intake Tracker</div>
     <div id="status" class="status online">Online</div>
     <div class="progress-card">
-      <div class="progress-circle">
+      <div class="progress-circle" id="progressCircle">
+        <div class="progress-liquid" id="progressLiquid"></div>
         <div class="progress-text" id="progressText">0%</div>
       </div>
       <div class="progress-subtext" id="progressSubtext">0 / 2000 ml</div>
-      <div class="goal-text" id="goalText">You are 2000 ml away from your goal</div>
+      <div class="goal-text" id="goalText">You need 2000 ml more</div>
+      <div id="goalCelebration" class="goal-celebration" style="display: none;">Daily goal reached 🎉</div>
     </div>
-    <button id="addWaterBtn" class="btn">Add Water</button>
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="stat-value" id="todayHydration">0</div>
+        <div class="stat-label">Today's Hydration</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="streak">0</div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+    </div>
+    <div class="quick-add">
+      <button class="quick-btn" data-type="water">💧 Water</button>
+      <button class="quick-btn" data-type="tea">🍵 Tea</button>
+      <button class="quick-btn" data-type="coffee">☕ Coffee</button>
+    </div>
+    <div class="today-timeline">
+      <h3>Today's Drinks</h3>
+      <div id="timelineList"></div>
+    </div>
   </div>
 
   <script src="js/sw-register.js"></script>

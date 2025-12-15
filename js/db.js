@@ -1,6 +1,17 @@
-const DB_NAME = 'WaterTrackerDB';
-const DB_VERSION = 1;
-const STORE_NAME = 'waterIntake';
+const DB_NAME = 'HydrationTrackerDB';
+const DB_VERSION = 2;
+const STORE_DRINKS = 'drinks';
+const STORE_SETTINGS = 'settings';
+
+const DRINK_COEFFS = {
+  water: 1.0,
+  tea: 0.9,
+  juice: 0.8,
+  milk: 0.7,
+  coffee: 0.6,
+  soda: 0.5,
+  other: 0.7
+};
 
 let db;
 
@@ -14,21 +25,28 @@ function openDB() {
     };
     request.onupgradeneeded = event => {
       const db = event.target.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+      if (!db.objectStoreNames.contains(STORE_DRINKS)) {
+        const store = db.createObjectStore(STORE_DRINKS, { keyPath: 'id', autoIncrement: true });
         store.createIndex('date', 'date', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(STORE_SETTINGS)) {
+        db.createObjectStore(STORE_SETTINGS, { keyPath: 'key' });
       }
     };
   });
 }
 
-function addWaterIntake(amount) {
+function addDrink(drinkType, amount) {
+  const coeff = DRINK_COEFFS[drinkType];
+  const hydration = Math.round(amount * coeff);
   return openDB().then(() => {
-    const transaction = db.transaction([STORE_NAME], 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
+    const transaction = db.transaction([STORE_DRINKS], 'readwrite');
+    const store = transaction.objectStore(STORE_DRINKS);
     const now = new Date();
     const data = {
+      drinkType: drinkType,
       amount: amount,
+      hydration: hydration,
       date: now.toISOString().split('T')[0],
       time: now.toTimeString().split(' ')[0]
     };
@@ -40,16 +58,16 @@ function addWaterIntake(amount) {
   });
 }
 
-function getDailyIntake(date) {
+function getDailyHydration(date) {
   return openDB().then(() => {
-    const transaction = db.transaction([STORE_NAME], 'readonly');
-    const store = transaction.objectStore(STORE_NAME);
+    const transaction = db.transaction([STORE_DRINKS], 'readonly');
+    const store = transaction.objectStore(STORE_DRINKS);
     const index = store.index('date');
     return new Promise((resolve, reject) => {
       const request = index.getAll(date);
       request.onsuccess = () => {
-        const intakes = request.result;
-        const total = intakes.reduce((sum, intake) => sum + intake.amount, 0);
+        const drinks = request.result;
+        const total = drinks.reduce((sum, drink) => sum + drink.hydration, 0);
         resolve(total);
       };
       request.onerror = () => reject(request.error);
@@ -57,10 +75,24 @@ function getDailyIntake(date) {
   });
 }
 
-function getAllIntakes() {
+function getTodaysDrinks() {
+  const today = new Date().toISOString().split('T')[0];
   return openDB().then(() => {
-    const transaction = db.transaction([STORE_NAME], 'readonly');
-    const store = transaction.objectStore(STORE_NAME);
+    const transaction = db.transaction([STORE_DRINKS], 'readonly');
+    const store = transaction.objectStore(STORE_DRINKS);
+    const index = store.index('date');
+    return new Promise((resolve, reject) => {
+      const request = index.getAll(today);
+      request.onsuccess = () => resolve(request.result.reverse()); // Reverse chronological
+      request.onerror = () => reject(request.error);
+    });
+  });
+}
+
+function getAllDrinks() {
+  return openDB().then(() => {
+    const transaction = db.transaction([STORE_DRINKS], 'readonly');
+    const store = transaction.objectStore(STORE_DRINKS);
     return new Promise((resolve, reject) => {
       const request = store.getAll();
       request.onsuccess = () => resolve(request.result);
@@ -69,14 +101,73 @@ function getAllIntakes() {
   });
 }
 
-function getIntakesByDate(date) {
+function getWeeklyHydration() {
+  const today = new Date();
+  const week = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    week.push(dateStr);
+  }
+  return Promise.all(week.map(date => getDailyHydration(date))).then(hydrations => {
+    return week.map((date, i) => ({ date, hydration: hydrations[i] }));
+  });
+}
+
+function getDrinkTypeBreakdown() {
+  return getAllDrinks().then(drinks => {
+    const breakdown = {};
+    drinks.forEach(drink => {
+      const type = drink.drinkType || "other";
+      if (!breakdown[type]) breakdown[type] = 0;
+      breakdown[type] += drink.hydration;
+    });
+    return breakdown;
+  });
+}
+
+function deleteLastDrink() {
   return openDB().then(() => {
-    const transaction = db.transaction([STORE_NAME], 'readonly');
-    const store = transaction.objectStore(STORE_NAME);
-    const index = store.index('date');
+    const transaction = db.transaction([STORE_DRINKS], 'readwrite');
+    const store = transaction.objectStore(STORE_DRINKS);
     return new Promise((resolve, reject) => {
-      const request = index.getAll(date);
-      request.onsuccess = () => resolve(request.result);
+      const request = store.openCursor(null, 'prev'); // Last added
+      request.onsuccess = event => {
+        const cursor = event.target.result;
+        if (cursor) {
+          cursor.delete();
+          resolve();
+        } else {
+          reject('No drinks to delete');
+        }
+      };
+      request.onerror = () => reject(request.error);
+    });
+  });
+}
+
+function getSettings() {
+  return openDB().then(() => {
+    const transaction = db.transaction([STORE_SETTINGS], 'readonly');
+    const store = transaction.objectStore(STORE_SETTINGS);
+    return new Promise((resolve, reject) => {
+      const request = store.get('settings');
+      request.onsuccess = () => {
+        resolve(request.result || { dailyGoal: 2000, notificationsEnabled: false });
+      };
+      request.onerror = () => reject(request.error);
+    });
+  });
+}
+
+function saveSettings(settings) {
+  return openDB().then(() => {
+    const transaction = db.transaction([STORE_SETTINGS], 'readwrite');
+    const store = transaction.objectStore(STORE_SETTINGS);
+    return new Promise((resolve, reject) => {
+      const request = store.put({ key: 'settings', ...settings });
+      request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
   });

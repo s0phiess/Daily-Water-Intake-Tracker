@@ -1,11 +1,12 @@
 :root {
-  --primary: #3B82F6;
-  --background: #F9FAFB;
-  --card: #FFFFFF;
-  --text: #111827;
-  --muted: #6B7280;
-  --border: #E5E7EB;
-  --shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  --bg: #0F172A;
+  --card: #1E293B;
+  --primary: #34D399;
+  --accent: #6EE7B7;
+  --text: #E5E7EB;
+  --muted: #94A3B8;
+  --border: #334155;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   --radius: 16px;
   --spacing: 16px;
 }
@@ -18,16 +19,22 @@
 }
 
 body {
-  background: var(--background);
+  background: var(--bg);
   color: var(--text);
   line-height: 1.5;
-  padding-bottom: 80px; /* Space for bottom nav */
+  padding-bottom: 80px;
 }
 
 .container {
-  max-width: 400px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: var(--spacing);
+  padding: 20px;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 24px;
+  }
 }
 
 /* Header */
@@ -50,42 +57,43 @@ body {
 }
 
 .status.online {
-  background: #D1FAE5;
-  color: #065F46;
+  background: #065F46;
+  color: #D1FAE5;
 }
 
 .status.offline {
-  background: #FEE2E2;
-  color: #991B1B;
+  background: #991B1B;
+  color: #FEE2E2;
 }
 
-/* Progress Card */
+/* Hydration Progress */
 .progress-card {
   background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: var(--spacing);
+  padding: 20px;
   text-align: center;
-  margin-bottom: var(--spacing);
+  margin-bottom: 16px;
 }
 
 .progress-circle {
-  width: 150px;
-  height: 150px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
-  background: conic-gradient(var(--primary) 0% 60%, #E5E7EB 60% 100%);
+  background: conic-gradient(var(--primary) 0% 0%, var(--bg) 0% 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto var(--spacing);
   position: relative;
+  overflow: hidden;
 }
 
 .progress-circle::before {
   content: '';
   position: absolute;
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   background: var(--card);
   border-radius: 50%;
   top: 50%;
@@ -93,11 +101,22 @@ body {
   transform: translate(-50%, -50%);
 }
 
+.progress-liquid {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, var(--primary), var(--accent));
+  border-radius: 0 0 90px 90px;
+  transition: height 0.5s ease;
+}
+
 .progress-text {
   position: relative;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--text);
+  z-index: 1;
 }
 
 .progress-subtext {
@@ -111,35 +130,104 @@ body {
   color: var(--muted);
 }
 
-/* Buttons */
-.btn {
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 14px;
-  padding: 16px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  width: 100%;
+/* Stat Cards */
+.stat-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing);
   margin-bottom: var(--spacing);
 }
 
-.btn:hover {
-  background: #2563EB;
+.stat-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  text-align: center;
 }
 
-.btn.secondary {
-  background: #E0E7FF;
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
   color: var(--primary);
 }
 
-.btn.secondary:hover {
-  background: #C7D2FE;
+.stat-label {
+  font-size: 14px;
+  color: var(--muted);
 }
 
-/* Add Water Grid */
+/* Quick Add */
+.quick-add {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing);
+  margin-bottom: var(--spacing);
+}
+
+.quick-btn {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.quick-btn:hover {
+  border-color: var(--primary);
+}
+
+.quick-btn.active {
+  background: var(--primary);
+  color: var(--bg);
+  border-color: var(--primary);
+}
+
+/* Drink Selection */
+.drink-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing);
+  margin-bottom: var(--spacing);
+}
+
+.drink-btn {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.drink-btn:hover {
+  border-color: var(--primary);
+}
+
+.drink-btn.active {
+  background: var(--primary);
+  color: var(--bg);
+  border-color: var(--primary);
+}
+
+.drink-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+/* Amount Selection */
 .amount-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -151,8 +239,8 @@ body {
   background: var(--card);
   border: 2px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
-  font-size: 18px;
+  padding: 16px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--text);
   cursor: pointer;
@@ -166,47 +254,104 @@ body {
 
 .amount-btn.active {
   background: var(--primary);
-  color: white;
+  color: var(--bg);
   border-color: var(--primary);
 }
 
-/* History Cards */
-.history-list {
-  list-style: none;
-}
-
-.history-card {
+/* Hydration Preview */
+.hydration-preview {
   background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: var(--spacing);
-  margin-bottom: var(--spacing);
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.preview-text {
+  font-size: 18px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Buttons */
+.btn {
+  background: var(--primary);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: box-shadow 0.2s;
+  transition: background 0.2s;
+  width: 100%;
+  margin-bottom: var(--spacing);
 }
 
-.history-card:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+.btn:hover {
+  background: var(--accent);
 }
 
-.history-date {
+/* Stats */
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+}
+
+.stat-item {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.stat-title {
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
-.history-total {
+.bar-chart {
+  display: flex;
+  align-items: end;
+  height: 180px;
+  gap: 8px;
+}
+
+.bar {
+  flex: 1;
+  background: var(--muted);
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  min-height: 20px;
+}
+
+.bar.filled {
+  background: var(--primary);
+}
+
+.bar-label {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.average {
+  text-align: center;
   font-size: 16px;
-  color: var(--muted);
+  color: var(--primary);
+  font-weight: 600;
 }
 
-.details {
-  margin-top: var(--spacing);
-  padding: var(--spacing);
-  background: var(--background);
-  border-radius: var(--radius);
-  font-size: 14px;
-  color: var(--muted);
+.totals-section {
+  margin-top: 12px;
+  margin-bottom: 16px;
 }
 
 /* Bottom Navigation */
@@ -217,7 +362,7 @@ body {
   right: 0;
   background: var(--card);
   border-top: 1px solid var(--border);
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
   display: flex;
   justify-content: space-around;
   padding: 12px 0;
@@ -244,12 +389,284 @@ body {
 
 .nav-link.active {
   color: var(--primary);
-  background: #EFF6FF;
+  background: rgba(52, 211, 153, 0.1);
 }
 
-/* Responsive */
-@media (min-width: 768px) {
-  .container {
-    max-width: 600px;
-  }
+/* Today Timeline */
+.today-timeline {
+  margin-bottom: var(--spacing);
+}
+
+.timeline-item {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-icon {
+  font-size: 24px;
+  margin-right: var(--spacing);
+}
+
+.timeline-details {
+  flex: 1;
+}
+
+.timeline-time {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.timeline-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.timeline-amount {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.timeline-hydration {
+  font-size: 16px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--muted);
+  padding: var(--spacing);
+}
+
+/* Goal Celebration */
+.goal-celebration {
+  text-align: center;
+  color: var(--primary);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: var(--spacing);
+}
+
+.progress-circle.goal-reached {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: var(--shadow); }
+  50% { box-shadow: 0 4px 20px rgba(52, 211, 153, 0.5); }
+  100% { box-shadow: var(--shadow); }
+}
+
+/* Custom Amount */
+.custom-amount {
+  margin-bottom: var(--spacing);
+}
+
+.custom-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text);
+  font-size: 16px;
+  text-align: center;
+}
+
+.custom-input:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+/* Snackbar */
+.snackbar {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--spacing);
+  display: flex;
+  align-items: center;
+  z-index: 1001;
+  animation: slideUp 0.3s ease;
+}
+
+.snackbar-message {
+  flex: 1;
+}
+
+.snackbar-action {
+  background: var(--primary);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: var(--spacing);
+}
+
+@keyframes slideUp {
+  from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* Statistics */
+.breakdown-item {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.breakdown-label {
+  flex: 1;
+  font-weight: 600;
+}
+
+.breakdown-bar {
+  flex: 3;
+  height: 20px;
+  background: var(--muted);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0 var(--spacing);
+}
+
+.breakdown-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+.breakdown-value {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* Settings */
+.settings-group {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.settings-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: var(--spacing);
+}
+
+.goal-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing);
+  margin-bottom: var(--spacing);
+}
+
+.goal-btn {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.goal-btn.active {
+  background: var(--primary);
+  color: var(--bg);
+  border-color: var(--primary);
+}
+
+.custom-goal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* відстань між input і кнопкою */
+  margin-top: 12px; /* відстань від кнопок 1500/2000/2500 */
+}
+
+.custom-goal input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text);
+  font-size: 16px;
+  text-align: center;
+}
+
+.custom-goal input:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toggle-label {
+  font-size: 16px;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 50px;
+  height: 24px;
+  background: var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle-switch.active {
+  background: var(--primary);
+}
+
+.toggle-switch::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle-switch.active::before {
+  transform: translateX(26px);
+}
+.weekly-totals {
+  margin-top: 32px;
+  display: grid;
+  gap: 6px;
+  text-align: center;
+}
+.weekly-totals {
+  margin-top: 32px;
+  display: grid;
+  gap: 6px;
+  text-align: center;
 }

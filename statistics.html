@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stats - Daily Water Intake Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">Statistics</div>
+
+    <div class="stats-container">
+      <!-- Weekly Hydration card -->
+      <div class="stat-item">
+        <div class="stat-title">Weekly Hydration</div>
+
+        <div class="bar-chart" id="barChart"></div>
+
+        <!-- totals MUST be inside same card -->
+        <div class="weekly-totals">
+          <div class="average" id="weeklyTotal">Total: 0 ml</div>
+          <div class="average" id="dailyAverage">Average: 0 ml</div>
+        </div>
+      </div>
+
+      <!-- Breakdown card -->
+      <div class="stat-item">
+        <div class="stat-title">Drink Type Breakdown</div>
+        <div id="breakdownList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/sw-register.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/navbar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      getSettings().then(settings => {
+        const goal = settings.dailyGoal;
+
+        getWeeklyHydration().then(weekData => {
+          const barChart = document.getElementById('barChart');
+          barChart.innerHTML = "";
+
+          const maxHydration = Math.max(...weekData.map(d => d.hydration), goal);
+          let total = 0;
+
+          weekData.forEach(data => {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+
+            const height = (data.hydration / maxHydration) * 140; // chart height scale
+            bar.style.height = `${height}px`;
+
+            if (data.hydration >= goal) bar.classList.add('filled');
+
+            const label = document.createElement('div');
+            label.className = 'bar-label';
+            label.textContent = new Date(data.date).toLocaleDateString('en', { weekday: 'short' });
+
+            bar.appendChild(label);
+            barChart.appendChild(bar);
+
+            total += data.hydration;
+          });
+
+          const average = Math.round(total / 7);
+          document.getElementById('weeklyTotal').textContent = `Total: ${total} ml`;
+          document.getElementById('dailyAverage').textContent = `Average: ${average} ml`;
+        });
+
+        getDrinkTypeBreakdown().then(breakdown => {
+          const breakdownList = document.getElementById('breakdownList');
+          breakdownList.innerHTML = "";
+
+          const totalHydration = Object.values(breakdown).reduce((sum, val) => sum + val, 0) || 1;
+
+          const displayNames = {
+            water: "Water",
+            tea: "Tea",
+            coffee: "Coffee",
+            juice: "Juice",
+            milk: "Milk",
+            soda: "Soda",
+            other: "Other"
+          };
+
+          Object.keys(breakdown).forEach(type => {
+            const safeType = (type || "other").toLowerCase();
+            const displayName = displayNames[safeType] || "Other";
+
+            const item = document.createElement('div');
+            item.className = 'breakdown-item';
+
+            const percentage = Math.round((breakdown[type] / totalHydration) * 100);
+            const width = (breakdown[type] / totalHydration) * 100;
+
+            item.innerHTML = `
+              <div class="breakdown-label">${displayName}</div>
+              <div class="breakdown-bar">
+                <div class="breakdown-fill" style="width: ${width}%"></div>
+              </div>
+              <div class="breakdown-value">${breakdown[type]} ml (${percentage}%)</div>
+            `;
+
+            breakdownList.appendChild(item);
+          });
+        });
+      });
+    });
+  </script>
+</body>
+</html>
