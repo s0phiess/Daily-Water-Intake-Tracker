@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const locationLabel = document.getElementById('locationLabel');
 
   let currentGoal = 2000;
+  let remindersIntervalId = null;
 
   function updateOnlineStatus() {
     if (navigator.onLine) {
@@ -60,22 +61,59 @@ document.addEventListener('DOMContentLoaded', () => {
     getTodaysDrinks().then(drinks => {
       timelineList.innerHTML = '';
       if (drinks.length === 0) {
-        timelineList.innerHTML = '<div class="empty-state">No drinks logged today</div>';
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-state';
+        emptyDiv.textContent = 'No drinks logged today';
+        timelineList.appendChild(emptyDiv);
         return;
       }
       drinks.forEach(drink => {
         const item = document.createElement('div');
         item.className = 'timeline-item';
+        
         const icon = getDrinkIcon(drink.drinkType);
-        item.innerHTML = `
-          <div class="timeline-icon">${icon}</div>
-          <div class="timeline-details">
-            <div class="timeline-time">${drink.time}</div>
-            <div class="timeline-name">${capitalize(drink.drinkType)}</div>
-            <div class="timeline-amount">${drink.amount} ml</div>
-          </div>
-          <div class="timeline-hydration">+${drink.hydration}</div>
-        `;
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'timeline-icon';
+        iconDiv.textContent = icon;
+        item.appendChild(iconDiv);
+        
+        const details = document.createElement('div');
+        details.className = 'timeline-details';
+        
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'timeline-time';
+        timeDiv.textContent = drink.time;
+        details.appendChild(timeDiv);
+        
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'timeline-name';
+        nameDiv.textContent = capitalize(drink.drinkType);
+        details.appendChild(nameDiv);
+        
+        const amountDiv = document.createElement('div');
+        amountDiv.className = 'timeline-amount';
+        amountDiv.textContent = drink.amount + ' ml';
+        details.appendChild(amountDiv);
+        
+        item.appendChild(details);
+        
+        const hydrationDiv = document.createElement('div');
+        hydrationDiv.className = 'timeline-hydration';
+        hydrationDiv.textContent = '+' + drink.hydration;
+        item.appendChild(hydrationDiv);
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'timeline-delete';
+        deleteBtn.textContent = '🗑';
+        deleteBtn.title = 'Delete drink';
+        deleteBtn.addEventListener('click', () => {
+          deleteDrinkById(drink.id).then(() => {
+            updateProgress();
+            updateTimeline();
+          }).catch(err => console.error('Error deleting drink:', err));
+        });
+        item.appendChild(deleteBtn);
+        
         timelineList.appendChild(item);
       });
     });
@@ -138,14 +176,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if ('Notification' in window && Notification.permission === 'granted') {
       getSettings().then(settings => {
         if (settings.notificationsEnabled) {
-          setInterval(() => {
-            new Notification('Daily Water Intake Tracker', {
-              body: 'Time to hydrate 💧'
-            });
-            if ('vibrate' in navigator) {
-              navigator.vibrate(500);
-            }
-          }, 2 * 60 * 60 * 1000); // 2 hours
+          // Only schedule if not already scheduled
+          if (remindersIntervalId === null) {
+            remindersIntervalId = setInterval(() => {
+              new Notification('Daily Water Intake Tracker', {
+                body: 'Time to hydrate 💧'
+              });
+              if ('vibrate' in navigator) {
+                navigator.vibrate(500);
+              }
+            }, 2 * 60 * 60 * 1000); // 2 hours
+          }
+        } else {
+          // Stop reminders if disabled
+          if (remindersIntervalId !== null) {
+            clearInterval(remindersIntervalId);
+            remindersIntervalId = null;
+          }
         }
       });
     }

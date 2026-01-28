@@ -12,13 +12,17 @@ const urlsToCache = [
   '/js/navbar.js',
   '/js/sw-register.js',
   '/js/settings.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/favicon.ico'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -30,7 +34,11 @@ self.addEventListener('fetch', event => {
           return response;
         }
         return fetch(event.request).catch(() => {
-          return caches.match('/offline.html');
+          // For navigation requests, return offline.html
+          if (event.request.mode === 'navigate') {
+            return caches.match('/offline.html');
+          }
+          throw Error('Network request failed');
         });
       })
   );
@@ -46,6 +54,6 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });

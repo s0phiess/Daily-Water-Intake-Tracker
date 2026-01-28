@@ -37,15 +37,26 @@ function openDB() {
 }
 
 function addDrink(drinkType, amount) {
+  // Validate and sanitize drinkType
+  if (!(drinkType in DRINK_COEFFS)) {
+    drinkType = 'other';
+  }
+  
+  // Validate amount: must be finite integer between 1 and 5000
+  const numAmount = Number(amount);
+  if (!Number.isFinite(numAmount) || !Number.isInteger(numAmount) || numAmount < 1 || numAmount > 5000) {
+    return Promise.reject(new Error('Amount must be an integer between 1 and 5000 ml'));
+  }
+  
   const coeff = DRINK_COEFFS[drinkType];
-  const hydration = Math.round(amount * coeff);
+  const hydration = Math.round(numAmount * coeff);
   return openDB().then(() => {
     const transaction = db.transaction([STORE_DRINKS], 'readwrite');
     const store = transaction.objectStore(STORE_DRINKS);
     const now = new Date();
     const data = {
       drinkType: drinkType,
-      amount: amount,
+      amount: numAmount,
       hydration: hydration,
       date: now.toISOString().split('T')[0],
       time: now.toTimeString().split(' ')[0]
@@ -142,6 +153,18 @@ function deleteLastDrink() {
           reject('No drinks to delete');
         }
       };
+      request.onerror = () => reject(request.error);
+    });
+  });
+}
+
+function deleteDrinkById(id) {
+  return openDB().then(() => {
+    const transaction = db.transaction([STORE_DRINKS], 'readwrite');
+    const store = transaction.objectStore(STORE_DRINKS);
+    return new Promise((resolve, reject) => {
+      const request = store.delete(id);
+      request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
   });
