@@ -1,4 +1,4 @@
-function createNavbar() {
+export function createNavbar() {
   const navbar = document.createElement('nav');
   navbar.className = 'bottom-nav';
   navbar.innerHTML = `
@@ -18,5 +18,3 @@ function createNavbar() {
     }
   });
 }
-
-document.addEventListener('DOMContentLoaded', createNavbar);

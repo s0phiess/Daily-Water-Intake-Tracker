@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', () => {
+import { getSettings, saveSettings } from './db.js';
+
+export function initSettings() {
   const goalBtns = document.querySelectorAll('.goal-btn');
   const customGoal = document.getElementById('customGoal');
   const saveCustomGoal = document.getElementById('saveCustomGoal');
@@ -72,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!currentSettings.notificationsEnabled) {
       // Turning ON
       if (!('Notification' in window)) {
-        alert('Notifications are not supported in this browser.');
+        // silent fail; keep behavior minimal in module
         return;
       }
       Notification.requestPermission().then(permission => {
@@ -81,8 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
           saveSettings(currentSettings).then(() => {
             loadSettings();
           });
-        } else {
-          alert('Notification permission denied.');
         }
       });
     } else {
@@ -96,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   testNotification.addEventListener('click', () => {
     if (!('Notification' in window)) {
-      alert('Notifications are not supported in this browser.');
       return;
     }
     if (Notification.permission === 'granted') {
@@ -115,8 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
           if ('vibrate' in navigator) {
             navigator.vibrate(500);
           }
-        } else {
-          alert('Notification permission denied.');
         }
       });
     }
@@ -206,4 +203,4 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadSettings();
-});
+}

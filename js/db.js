@@ -1,21 +1,13 @@
+import { DRINK_COEFFS, DEFAULT_SETTINGS } from './constants.js';
+
 const DB_NAME = 'HydrationTrackerDB';
 const DB_VERSION = 2;
 const STORE_DRINKS = 'drinks';
 const STORE_SETTINGS = 'settings';
 
-const DRINK_COEFFS = {
-  water: 1.0,
-  tea: 0.9,
-  juice: 0.8,
-  milk: 0.7,
-  coffee: 0.6,
-  soda: 0.5,
-  other: 0.7
-};
-
 let db;
 
-function openDB() {
+export function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onerror = () => reject(request.error);
@@ -36,18 +28,18 @@ function openDB() {
   });
 }
 
-function addDrink(drinkType, amount) {
+export function addDrink(drinkType, amount) {
   // Validate and sanitize drinkType
   if (!(drinkType in DRINK_COEFFS)) {
     drinkType = 'other';
   }
-  
+
   // Validate amount: must be finite integer between 1 and 5000
   const numAmount = Number(amount);
   if (!Number.isFinite(numAmount) || !Number.isInteger(numAmount) || numAmount < 1 || numAmount > 5000) {
     return Promise.reject(new Error('Amount must be an integer between 1 and 5000 ml'));
   }
-  
+
   const coeff = DRINK_COEFFS[drinkType];
   const hydration = Math.round(numAmount * coeff);
   return openDB().then(() => {
@@ -69,7 +61,7 @@ function addDrink(drinkType, amount) {
   });
 }
 
-function getDailyHydration(date) {
+export function getDailyHydration(date) {
   return openDB().then(() => {
     const transaction = db.transaction([STORE_DRINKS], 'readonly');
     const store = transaction.objectStore(STORE_DRINKS);
@@ -86,7 +78,7 @@ function getDailyHydration(date) {
   });
 }
 
-function getTodaysDrinks() {
+export function getTodaysDrinks() {
   const today = new Date().toISOString().split('T')[0];
   return openDB().then(() => {
     const transaction = db.transaction([STORE_DRINKS], 'readonly');
@@ -100,7 +92,7 @@ function getTodaysDrinks() {
   });
 }
 
-function getAllDrinks() {
+export function getAllDrinks() {
   return openDB().then(() => {
     const transaction = db.transaction([STORE_DRINKS], 'readonly');
     const store = transaction.objectStore(STORE_DRINKS);
@@ -112,7 +104,7 @@ function getAllDrinks() {
   });
 }
 
-function getWeeklyHydration() {
+export function getWeeklyHydration() {
   const today = new Date();
   const week = [];
   for (let i = 6; i >= 0; i--) {
@@ -126,7 +118,7 @@ function getWeeklyHydration() {
   });
 }
 
-function getDrinkTypeBreakdown() {
+export function getDrinkTypeBreakdown() {
   return getAllDrinks().then(drinks => {
     const breakdown = {};
     drinks.forEach(drink => {
@@ -138,7 +130,7 @@ function getDrinkTypeBreakdown() {
   });
 }
 
-function deleteLastDrink() {
+export function deleteLastDrink() {
   return openDB().then(() => {
     const transaction = db.transaction([STORE_DRINKS], 'readwrite');
     const store = transaction.objectStore(STORE_DRINKS);
@@ -158,7 +150,7 @@ function deleteLastDrink() {
   });
 }
 
-function deleteDrinkById(id) {
+export function deleteDrinkById(id) {
   return openDB().then(() => {
     const transaction = db.transaction([STORE_DRINKS], 'readwrite');
     const store = transaction.objectStore(STORE_DRINKS);
@@ -170,14 +162,14 @@ function deleteDrinkById(id) {
   });
 }
 
-function getSettings() {
+export function getSettings() {
   return openDB().then(() => {
     const transaction = db.transaction([STORE_SETTINGS], 'readonly');
     const store = transaction.objectStore(STORE_SETTINGS);
     return new Promise((resolve, reject) => {
       const request = store.get('settings');
       request.onsuccess = () => {
-        const settings = request.result || { dailyGoal: 2000, notificationsEnabled: false, location: null };
+        const settings = request.result || DEFAULT_SETTINGS;
         resolve(settings);
       };
       request.onerror = () => reject(request.error);
@@ -185,7 +177,7 @@ function getSettings() {
   });
 }
 
-function saveSettings(settings) {
+export function saveSettings(settings) {
   return openDB().then(() => {
     const transaction = db.transaction([STORE_SETTINGS], 'readwrite');
     const store = transaction.objectStore(STORE_SETTINGS);
