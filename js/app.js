@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'timeline-delete';
-        deleteBtn.textContent = '🗑';
+        deleteBtn.textContent = '✕';
         deleteBtn.title = 'Delete drink';
         deleteBtn.addEventListener('click', () => {
           deleteDrinkById(drink.id).then(() => {

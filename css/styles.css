@@ -437,6 +437,29 @@ body {
   font-weight: 600;
 }
 
+.timeline-delete {
+  background: none;
+  border: none;
+  color: #9CA3AF;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 12px;
+  padding: 4px 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timeline-item:hover .timeline-delete {
+  opacity: 1;
+}
+
+.timeline-delete:hover {
+  color: #EF4444;
+}
+
 .empty-state {
   text-align: center;
   color: var(--muted);
