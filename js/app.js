@@ -1,4 +1,16 @@
-import { openDB, addDrink, getSettings, getDailyHydration, getTodaysDrinks, deleteLastDrink, deleteDrinkById, getWeeklyHydration, getDrinkTypeBreakdown, saveSettings } from './db.js';
+import {
+  openDB,
+  addDrink,
+  getSettings,
+  getDailyHydration,
+  getTodaysDrinks,
+  deleteLastDrink,
+  deleteDrinkById,
+  getWeeklyHydration,
+  getDrinkTypeBreakdown,
+  saveSettings
+} from './db.js';
+
 import { DRINK_COEFFS } from './constants.js';
 import { createNavbar } from './navbar.js';
 import { capitalize, getDrinkIcon, showSnackbar } from './utils.js';
@@ -17,7 +29,6 @@ function mount() {
   } else if (page === 'statistics.html') {
     initStatistics();
   } else if (page === 'settings.html') {
-    
     import('./settings.js').then(module => module.initSettings());
   }
 }
@@ -31,7 +42,9 @@ if (document.readyState === 'loading') {
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      // app.js is in /js/, sw.js is in project root => ../sw.js
+      const swUrl = new URL('../sw.js', import.meta.url);
+      navigator.serviceWorker.register(swUrl).catch(() => {});
     });
   }
 }
@@ -52,62 +65,63 @@ function initHome() {
 
   let currentGoal = 2000;
 
-  // Ping-based online status (more reliable than navigator.onLine)
-  const STATUS_PING = '/ping.txt';
-  const PING_TIMEOUT = 5000; // ms
-  const PING_INTERVAL = 10000; // ms
+  // --- Stable online/offline detection (works on GitHub Pages too) ---
+  // app.js is in /js/, ping.txt is in project root => ../ping.txt
+  const STATUS_PING = new URL('../ping.txt', import.meta.url).toString();
+  const PING_TIMEOUT = 3000;   // ms
+  const PING_INTERVAL = 5000;  // ms
   let pingIntervalId = null;
 
   async function pingStatus(timeout = PING_TIMEOUT) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+
     try {
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), timeout);
-      const res = await fetch(STATUS_PING, { cache: 'no-store', credentials: 'same-origin', signal: controller.signal });
-      clearTimeout(id);
-      return !!(res && (res.ok || res.type === 'opaque'));
-    } catch (err) {
+      const res = await fetch(`${STATUS_PING}?t=${Date.now()}`, {
+        cache: 'no-store',
+        signal: controller.signal
+      });
+      return !!(res && res.ok);
+    } catch {
       return false;
+    } finally {
+      clearTimeout(timer);
     }
   }
 
   function setStatus(isOnline) {
-    if (isOnline) {
-      statusDiv.textContent = 'Online';
-      statusDiv.className = 'status online';
-    } else {
-      statusDiv.textContent = 'Offline';
-      statusDiv.className = 'status offline';
-    }
+    statusDiv.textContent = isOnline ? 'Online' : 'Offline';
+    statusDiv.className = `status ${isOnline ? 'online' : 'offline'}`;
   }
 
   async function updateOnlineStatus() {
-    if (typeof navigator.onLine === 'boolean' && !navigator.onLine) {
-      setStatus(false);
-      return;
-    }
     const ok = await pingStatus();
     setStatus(ok);
   }
+  // --- end status ---
 
   function updateProgress() {
     const today = new Date().toISOString().split('T')[0];
     getSettings().then(settings => {
       currentGoal = settings.dailyGoal;
-      // Update location label
+
       if (settings.location && settings.location.city) {
         locationLabel.textContent = `Location: ${settings.location.city}`;
       } else {
         locationLabel.textContent = '';
       }
+
       getDailyHydration(today).then(total => {
         const percentage = Math.min((total / currentGoal) * 100, 100);
         const remaining = currentGoal - total;
+
         progressText.textContent = `${Math.round(percentage)}%`;
         progressSubtext.textContent = `${total} / ${currentGoal} ml`;
         goalText.textContent = remaining > 0 ? `You need ${remaining} ml more` : 'Goal achieved!';
+
         progressLiquid.style.height = `${percentage * 1.8}px`; // 180px max
         todayHydration.textContent = total;
-        // Simple streak calculation
+
         streak.textContent = total >= currentGoal ? '1' : '0';
 
         if (total >= currentGoal) {
@@ -124,6 +138,7 @@ function initHome() {
   function updateTimeline() {
     getTodaysDrinks().then(drinks => {
       timelineList.innerHTML = '';
+
       if (drinks.length === 0) {
         const emptyDiv = document.createElement('div');
         emptyDiv.className = 'empty-state';
@@ -131,6 +146,7 @@ function initHome() {
         timelineList.appendChild(emptyDiv);
         return;
       }
+
       drinks.forEach(drink => {
         const item = document.createElement('div');
         item.className = 'timeline-item';
@@ -171,10 +187,12 @@ function initHome() {
         deleteBtn.textContent = '✕';
         deleteBtn.title = 'Delete drink';
         deleteBtn.addEventListener('click', () => {
-          deleteDrinkById(drink.id).then(() => {
-            updateProgress();
-            updateTimeline();
-          }).catch(err => console.error('Error deleting drink:', err));
+          deleteDrinkById(drink.id)
+            .then(() => {
+              updateProgress();
+              updateTimeline();
+            })
+            .catch(err => console.error('Error deleting drink:', err));
         });
         item.appendChild(deleteBtn);
 
@@ -206,7 +224,6 @@ function initHome() {
     if ('Notification' in window && Notification.permission === 'granted') {
       getSettings().then(settings => {
         if (settings.notificationsEnabled) {
-          // Only schedule if not already scheduled
           if (remindersIntervalId === null) {
             remindersIntervalId = setInterval(() => {
               new Notification('Daily Water Intake Tracker', {
@@ -218,7 +235,6 @@ function initHome() {
             }, 2 * 60 * 60 * 1000); // 2 hours
           }
         } else {
-          // Stop reminders if disabled
           if (remindersIntervalId !== null) {
             clearInterval(remindersIntervalId);
             remindersIntervalId = null;
@@ -228,11 +244,11 @@ function initHome() {
     }
   }
 
-  window.addEventListener('online', updateOnlineStatus);
-  window.addEventListener('offline', () => setStatus(false));
+  // Run status checks (no navigator.onLine and no online/offline events)
   updateOnlineStatus();
   if (pingIntervalId) clearInterval(pingIntervalId);
   pingIntervalId = setInterval(updateOnlineStatus, PING_INTERVAL);
+
   updateProgress();
   updateTimeline();
   scheduleReminders();
@@ -244,6 +260,7 @@ function initAddDrink() {
   const customAmount = document.getElementById('customAmount');
   const previewText = document.getElementById('previewText');
   const saveBtn = document.getElementById('saveBtn');
+
   let selectedDrink = null;
   let selectedAmount = null;
 
@@ -258,7 +275,6 @@ function initAddDrink() {
     });
   });
 
-  // Default to water on load
   const defaultBtn = document.querySelector('.drink-btn[data-type="water"]');
   if (defaultBtn) defaultBtn.click();
 
@@ -294,9 +310,11 @@ function initAddDrink() {
   saveBtn.addEventListener('click', () => {
     if (selectedDrink && selectedAmount) {
       const drinkType = selectedDrink || 'water';
-      addDrink(drinkType, selectedAmount).then(() => {
-        window.location.href = 'index.html';
-      }).catch(() => {});
+      addDrink(drinkType, selectedAmount)
+        .then(() => {
+          window.location.href = 'index.html';
+        })
+        .catch(() => {});
     }
   });
 }
@@ -308,7 +326,7 @@ function initStatistics() {
     getWeeklyHydration().then(weekData => {
       const barChart = document.getElementById('barChart');
       if (!barChart) return;
-      barChart.innerHTML = "";
+      barChart.innerHTML = '';
 
       const maxHydration = Math.max(...weekData.map(d => d.hydration), goal);
       let total = 0;
@@ -317,7 +335,7 @@ function initStatistics() {
         const bar = document.createElement('div');
         bar.className = 'bar';
 
-        const height = (data.hydration / maxHydration) * 140; // chart height scale
+        const height = (data.hydration / maxHydration) * 140;
         bar.style.height = `${height}px`;
 
         if (data.hydration >= goal) bar.classList.add('filled');
@@ -335,6 +353,7 @@ function initStatistics() {
       const average = Math.round(total / 7);
       const weeklyTotalEl = document.getElementById('weeklyTotal');
       const dailyAverageEl = document.getElementById('dailyAverage');
+
       if (weeklyTotalEl) weeklyTotalEl.textContent = `Total: ${total} ml`;
       if (dailyAverageEl) dailyAverageEl.textContent = `Average: ${average} ml`;
     });
@@ -342,23 +361,23 @@ function initStatistics() {
     getDrinkTypeBreakdown().then(breakdown => {
       const breakdownList = document.getElementById('breakdownList');
       if (!breakdownList) return;
-      breakdownList.innerHTML = "";
+      breakdownList.innerHTML = '';
 
       const totalHydration = Object.values(breakdown).reduce((sum, val) => sum + val, 0) || 1;
 
       const displayNames = {
-        water: "Water",
-        tea: "Tea",
-        coffee: "Coffee",
-        juice: "Juice",
-        milk: "Milk",
-        soda: "Soda",
-        other: "Other"
+        water: 'Water',
+        tea: 'Tea',
+        coffee: 'Coffee',
+        juice: 'Juice',
+        milk: 'Milk',
+        soda: 'Soda',
+        other: 'Other'
       };
 
       Object.keys(breakdown).forEach(type => {
-        const safeType = (type || "other").toLowerCase();
-        const displayName = displayNames[safeType] || "Other";
+        const safeType = (type || 'other').toLowerCase();
+        const displayName = displayNames[safeType] || 'Other';
 
         const item = document.createElement('div');
         item.className = 'breakdown-item';
@@ -379,4 +398,3 @@ function initStatistics() {
     });
   });
 }
-
