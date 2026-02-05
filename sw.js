@@ -27,6 +27,17 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  const requestURL = new URL(event.request.url);
+
+  // Treat /ping.txt as network-only (never serve from cache)
+  if (requestURL.origin === self.location.origin && requestURL.pathname === '/ping.txt') {
+    event.respondWith(
+      fetch(new Request(event.request, { cache: 'no-store', credentials: 'same-origin' }))
+        .catch(() => new Response('', { status: 503, statusText: 'Service Unavailable' }))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {

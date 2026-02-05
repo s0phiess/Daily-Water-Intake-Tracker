@@ -5,6 +5,29 @@ import { capitalize, getDrinkIcon, showSnackbar } from './utils.js';
 
 let remindersIntervalId = null;
 
+function mount() {
+  createNavbar();
+  registerServiceWorker();
+
+  const page = window.location.pathname.split('/').pop() || 'index.html';
+  if (page === '' || page === 'index.html') {
+    initHome();
+  } else if (page === 'add-drink.html') {
+    initAddDrink();
+  } else if (page === 'statistics.html') {
+    initStatistics();
+  } else if (page === 'settings.html') {
+    
+    import('./settings.js').then(module => module.initSettings());
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', mount);
+} else {
+  mount();
+}
+
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -29,14 +52,41 @@ function initHome() {
 
   let currentGoal = 2000;
 
-  function updateOnlineStatus() {
-    if (navigator.onLine) {
+  // Ping-based online status (more reliable than navigator.onLine)
+  const STATUS_PING = '/ping.txt';
+  const PING_TIMEOUT = 5000; // ms
+  const PING_INTERVAL = 10000; // ms
+  let pingIntervalId = null;
+
+  async function pingStatus(timeout = PING_TIMEOUT) {
+    try {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeout);
+      const res = await fetch(STATUS_PING, { cache: 'no-store', credentials: 'same-origin', signal: controller.signal });
+      clearTimeout(id);
+      return !!(res && (res.ok || res.type === 'opaque'));
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function setStatus(isOnline) {
+    if (isOnline) {
       statusDiv.textContent = 'Online';
       statusDiv.className = 'status online';
     } else {
       statusDiv.textContent = 'Offline';
       statusDiv.className = 'status offline';
     }
+  }
+
+  async function updateOnlineStatus() {
+    if (typeof navigator.onLine === 'boolean' && !navigator.onLine) {
+      setStatus(false);
+      return;
+    }
+    const ok = await pingStatus();
+    setStatus(ok);
   }
 
   function updateProgress() {
@@ -179,8 +229,10 @@ function initHome() {
   }
 
   window.addEventListener('online', updateOnlineStatus);
-  window.addEventListener('offline', updateOnlineStatus);
+  window.addEventListener('offline', () => setStatus(false));
   updateOnlineStatus();
+  if (pingIntervalId) clearInterval(pingIntervalId);
+  pingIntervalId = setInterval(updateOnlineStatus, PING_INTERVAL);
   updateProgress();
   updateTimeline();
   scheduleReminders();
@@ -328,25 +380,3 @@ function initStatistics() {
   });
 }
 
-function mount() {
-  createNavbar();
-  registerServiceWorker();
-
-  const page = window.location.pathname.split('/').pop() || 'index.html';
-  if (page === '' || page === 'index.html') {
-    initHome();
-  } else if (page === 'add-drink.html') {
-    initAddDrink();
-  } else if (page === 'statistics.html') {
-    initStatistics();
-  } else if (page === 'settings.html') {
-    // lazy import settings module initializer
-    import('./settings.js').then(module => module.initSettings());
-  }
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', mount);
-} else {
-  mount();
-}
