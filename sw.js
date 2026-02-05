@@ -45,20 +45,30 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation requests: offline fallback is ALWAYS offline.html
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then((res) => {
-          // cache the latest page when online
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-          return res;
-        })
-        .catch(() => caches.match('/offline.html'))
-    );
-    return;
-  }
+ // Navigation requests: try network, fallback to cached page, then index.html, then offline.html
+if (event.request.mode === 'navigate') {
+  event.respondWith(
+    fetch(event.request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        return res;
+      })
+      .catch(async () => {
+        // 1) пробуємо саме ту сторінку з кешу
+        const cachedPage = await caches.match(event.request);
+        if (cachedPage) return cachedPage;
+
+        // 2) якщо нема — віддай index.html з кешу (app shell)
+        const cachedIndex = await caches.match('/index.html');
+        if (cachedIndex) return cachedIndex;
+
+        // 3) останній варіант — offline.html
+        return caches.match('/offline.html');
+      })
+  );
+  return;
+}
 
   // Static assets: cache-first
   event.respondWith(
